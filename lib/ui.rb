@@ -15,72 +15,82 @@ class UI
   #     end
   #   end
   # end
-  
+
   def ui
     puts 'Yo Scrapper!'.bold.red, 'Gimmi some thing to scrap', 'like www.someting.com'
-    # input = gets.chomp
-    # if input == ''
-    #   input = 'www.tradingview.com/markets/'
-    #   puts "None given hommie, setting up '#{input}'"
-    # end
-    input = input_controller()
-
+    input = input_controller('init')
     doc = Nokogiri::HTML(URI.open("http://#{input}"))
-    puts 'Now gimmi the target homie!'
-    target = gets.chomp
-    target = 'a.tv-feed-widget__title-link' if target == '' || target.nil?
-    puts '', doc.css(target).text
+    categories = input_controller('categories')
+    puts '', doc.css(categories).text.bold.blue, 'Now chose form above', ''
+    category = input_controller('category')
+    scrap(category)
+  end
 
-    puts 'Now chose form above'
-    # target = gets.chomp
-    target = 'stocks'
-    case target
+  private
+
+  def validate_input(str)
+    puts "validates user input #{str}"
+  end
+
+  def input_controller(str)
+    case str
+    when 'init'
+      @out = gets.chomp
+      if @out == ''
+        @out = 'www.tradingview.com/markets/'
+        puts "None given hommie, setting up '#{@out}'"
+      end
+    when 'categories'
+      @out = 'a.tv-feed-widget__title-link'
+    when 'category'
+      @out = 'stocks'
+    end
+    @out
+  end
+
+  def scrap(category)
+    case category
     when 'indices'
     when 'futures'
     when 'currencies'
     when 'bonds'
     when 'stocks'
-      input = 'www.tradingview.com/markets/stocks-usa/market-movers-large-cap/'
-      doc = Nokogiri::HTML(URI.parse("http://#{input}").open)
-      target = 'tr.tv-data-table__row'
-      # puts doc
-      doc.css(target).each do |i|
-        name = i.css('a[class="tv-screener__symbol"]').text.bold
-        cap = i.css('td.tv-screener-table__cell--big')[6].text.bold
-        price = i.css('td.tv-screener-table__cell--big')[1].text.bold
-        available = i.css('td.tv-screener-table__cell--big')[4].text.bold
-        total = i.css('td.tv-screener-table__cell--big')[5].text.bold
-        trade_volume = i.css('td.tv-screener-table__cell--big')[6].text.bold
-        change = i.css('td.tv-screener-table__cell--big')[2].text.bold
-        puts " #{name} #{cap} #{price} #{available} #{total} #{trade_volume} #{change}"
-      end
+      stocks
     when 'cryptocurrencies'
-      input = 'www.tradingview.com/markets/cryptocurrencies/prices-all/'
-      doc = Nokogiri::HTML(URI.parse("http://#{input}").open)
-      target = 'tr.tv-data-table__row'
-      # puts doc
-      doc.css(target).each do |i|
-        name = i.css('a[class="tv-screener__symbol"]').text.bold
-        cap = i.css('td.tv-screener-table__cell--big')[1].text.bold
-        price = i.css('td.tv-screener-table__cell--big')[3].text.bold
-        available = i.css('td.tv-screener-table__cell--big')[4].text.bold
-        total = i.css('td.tv-screener-table__cell--big')[5].text.bold
-        trade_volume = i.css('td.tv-screener-table__cell--big')[6].text.bold
-        change = i.css('td.tv-screener-table__cell--big')[7].text.bold
-        puts " #{name} #{cap} #{price} #{available} #{total} #{trade_volume} #{change}"
-      end
+      cryptocurrencies
     when 'exit'
     end
   end
 
-  private
-
-  def input_controller
-    @input = gets.chomp
-    if @input == ''
-      @input = 'www.tradingview.com/markets/'
-      puts "None given hommie, setting up '#{@input}'"
+  def stocks
+    @ref = 'www.tradingview.com/markets/stocks-usa/market-movers-large-cap/'
+    @doc = Nokogiri::HTML(URI.parse("http://#{@ref}").open)
+    @filter = 'tr.tv-data-table__row'
+    @doc.css(@filter).each do |i|
+      @name = i.css('a[class="tv-screener__symbol"]').text.bold
+      @cap = i.css('td.tv-screener-table__cell--big')[6].text.bold
+      @price = i.css('td.tv-screener-table__cell--big')[1].text.bold
+      @available = i.css('td.tv-screener-table__cell--big')[4].text.bold
+      @total = i.css('td.tv-screener-table__cell--big')[5].text.bold
+      @trade_volume = i.css('td.tv-screener-table__cell--big')[6].text.bold
+      @change = i.css('td.tv-screener-table__cell--big')[2].text.bold
+      puts " #{@name} #{@cap} #{@price} #{@available} #{@total} #{@trade_volume} #{@change}"
     end
-    @input
-  end 
+  end
+
+  def cryptocurrencies
+    @ref = 'www.tradingview.com/markets/cryptocurrencies/prices-all/'
+    @doc = Nokogiri::HTML(URI.parse("http://#{@ref}").open)
+    @filter = 'tr.tv-data-table__row'
+    @doc.css(@filter).each do |i|
+      @name = i.css('a[class="tv-screener__symbol"]').text.bold
+      @cap = i.css('td.tv-screener-table__cell--big')[1].text.bold
+      @price = i.css('td.tv-screener-table__cell--big')[3].text.bold
+      @available = i.css('td.tv-screener-table__cell--big')[4].text.bold
+      @total = i.css('td.tv-screener-table__cell--big')[5].text.bold
+      @trade_volume = i.css('td.tv-screener-table__cell--big')[6].text.bold
+      @change = i.css('td.tv-screener-table__cell--big')[7].text.bold
+      puts " #{@name} #{@cap} #{@price} #{@available} #{@total} #{@trade_volume} #{@change}"
+    end
+  end
 end
