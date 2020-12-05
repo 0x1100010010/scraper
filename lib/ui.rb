@@ -15,23 +15,19 @@ class UI
   #     end
   #   end
   # end
-
+  
   def ui
     puts 'Yo Scrapper!'.bold.red, 'Gimmi some thing to scrap', 'like www.someting.com'
-    input = gets.chomp
-    if input == ''
-      input = 'www.tradingview.com/markets/'
-      puts "None given hommie, setting up '#{input}'"
-    end
-
-    if input == ''
-      input = 'www.tradingview.com/markets/cryptocurrencies/prices-all/'
-      puts "None given hommie, setting up '#{input}'"
-    end
+    # input = gets.chomp
+    # if input == ''
+    #   input = 'www.tradingview.com/markets/'
+    #   puts "None given hommie, setting up '#{input}'"
+    # end
+    input = input_controller()
 
     doc = Nokogiri::HTML(URI.open("http://#{input}"))
     puts 'Now gimmi the target homie!'
-    # target = gets.chomp
+    target = gets.chomp
     target = 'a.tv-feed-widget__title-link' if target == '' || target.nil?
     puts '', doc.css(target).text
 
@@ -76,4 +72,15 @@ class UI
     when 'exit'
     end
   end
+
+  private
+
+  def input_controller
+    @input = gets.chomp
+    if @input == ''
+      @input = 'www.tradingview.com/markets/'
+      puts "None given hommie, setting up '#{@input}'"
+    end
+    @input
+  end 
 end
