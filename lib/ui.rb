@@ -1,29 +1,13 @@
 class UI
-  # constants = if spinner_pack = ARGV[0]
-  #               [spinner_pack.upcase]
-  #             else
-  #               Whirly::Spinners.constants
-  #             end
-
-  # constants.each do |spinner_pack|
-  #   puts
-  #   puts Paint[spinner_pack,]
-  #   puts
-  #   Whirly::Spinners.const_get(spinner_pack).keys.sort.each do |spinner_name|
-  #     Whirly.start(spinner: spinner_name, status: spinner_name) do
-  #       sleep 1
-  #     end
-  #   end
-  # end
-
   def ui
-    puts 'Yo Scrapper!'.bold.red, 'Gimmi some thing to scrap', 'like www.someting.com'
-    input = input_controller('init')
-    doc = Nokogiri::HTML(URI.open("http://#{input}"))
-    categories = input_controller('categories')
-    puts '', doc.css(categories).text.bold.blue, 'Now chose form above', ''
-    category = input_controller('category')
-    scrap(category)
+    font = TTY::Font.new(:standard)
+    prompt = TTY::Prompt.new
+    puts font.write('Yo Scrapper!').red
+
+    uname = prompt.ask('What is your name?', default: ENV['USER'])
+    init = controller('init')
+    category = prompt.select('Select catogory#', init)
+    scrap(category, nil)
   end
 
   private
@@ -32,34 +16,48 @@ class UI
     puts "validates user input #{str}"
   end
 
-  def input_controller(str)
+  def controller(str)
     case str
     when 'init'
-      @out = gets.chomp
-      if @out == ''
-        @out = 'www.tradingview.com/markets/'
-        puts "None given hommie, setting up '#{@out}'"
-      end
-    when 'categories'
-      @out = 'a.tv-feed-widget__title-link'
+      @addr = 'www.tradingview.com/markets/'
+      puts "Fetching catogories from '#{@addr}'"
+      @target = 'a.tv-feed-widget__title-link'
+      @out = scrap(str, [@addr, @target])
     when 'category'
       @out = 'stocks'
     end
     @out
   end
 
-  def scrap(category)
+  def scrap(category, args)
     case category
-    when 'indices'
-    when 'futures'
-    when 'currencies'
-    when 'bonds'
-    when 'stocks'
+    when 'init'
+      init(args)
+    when 'Indices'
+      puts 'indices'.bold.blue
+    when 'Futures'
+      puts 'futures'.bold.blue
+    when 'Currencies'
+      puts 'currencies'.bold.blue
+    when 'Bonds'
+      puts 'bonds'.bold.blue
+    when 'Stocks'
       stocks
-    when 'cryptocurrencies'
+    when 'Cryptocurrencies'
       cryptocurrencies
     when 'exit'
     end
+  end
+
+  def init(addr)
+    arr = []
+    @doc = Nokogiri::HTML(URI.open("http://#{addr[0]}"))
+    arr << @doc.css(addr[1]).text.split
+    arr
+  end
+
+  def futures
+    puts 'futures'.bold.blue
   end
 
   def stocks
@@ -70,11 +68,10 @@ class UI
       @name = i.css('a[class="tv-screener__symbol"]').text.bold
       @cap = i.css('td.tv-screener-table__cell--big')[6].text.bold
       @price = i.css('td.tv-screener-table__cell--big')[1].text.bold
-      @available = i.css('td.tv-screener-table__cell--big')[4].text.bold
-      @total = i.css('td.tv-screener-table__cell--big')[5].text.bold
-      @trade_volume = i.css('td.tv-screener-table__cell--big')[6].text.bold
-      @change = i.css('td.tv-screener-table__cell--big')[2].text.bold
-      puts " #{@name} #{@cap} #{@price} #{@available} #{@total} #{@trade_volume} #{@change}"
+      @vol = i.css('td.tv-screener-table__cell--big')[5].text.bold
+      @recommendation = i.css('td.tv-screener-table__cell--big')[4].text.bold
+      @sector = i.css('td.tv-screener-table__cell--big')[10].text.bold
+      puts " #{@name} #{@cap} #{@price} #{@vol} #{@recommendation} #{@sector}"
     end
   end
 
