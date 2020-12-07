@@ -7,7 +7,9 @@ require 'whirly'
 require 'tty-font'
 require 'tty-prompt'
 require 'tty-link'
+require 'pastel'
 require 'tty-table'
+require 'tty-spinner'
 
 init = UI.new
 init.ui

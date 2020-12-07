@@ -1,45 +1,51 @@
+# FLOW: UI -> controller -> scrap
 class UI
-  def ui
-    font = TTY::Font.new(:standard)
-    prompt = TTY::Prompt.new
-    puts font.write('Yo Scrapper!').red
+  def initialize
+    @_name = []
+    @_address = []
+    @_root_addr = 'https://www.tradingview.com/markets'
+    @spinner = TTY::Spinner.new
+    @font = TTY::Font.new(:standard)
+    @prompt = TTY::Prompt.new(help_color: :cyan)
+  end
 
-    # uname = prompt.ask('What is your name?', default: ENV['USER'])
-    category = prompt.select('Select catogory#', controller('init'), filter: true)
+  def ui
+    puts @font.write('Yo Scrapper!').red
+    category = @prompt.select('Select catogory#', controller('init'), filter: true)
     scrap(category)
   end
 
   private
 
-  def validate_input(str)
-    puts "validates user input #{str}"
-  end
-
   def controller(str)
     case str
     when 'init'
-      @addr = 'https://www.tradingview.com/markets/'
-      puts TTY::Link.link_to("Fetching catogories from#{' TradingView'.blue.bold}", @addr.blue)
+      puts TTY::Link.link_to("Fetching catogories from#{' TradingView'.blue.bold}", @_root_addr.blue)
+      @spinner.auto_spin
       @target = 'a.tv-feed-widget__title-link'
-      @out = scrap(str, [@addr, @target])
-    when 'category'
-      @out = 'stocks'
+      @out = scrap(str, [@_root_addr, @target])
+    when 'Indices'
+      puts 'Indices'
     end
+    @spinner.success
     @out
   end
 
-  def scrap(category, args=nil)
+  def scrap(category, args = nil)
     case category
     when 'init'
       init(args)
+      # s = @_root_addr + @_address[1][8..-1]
+      # puts s
+      # puts @_name.inspect, @_address.inspect
     when 'Indices'
-      puts 'indices'.bold.blue
+      indices(args)
     when 'Futures'
-      puts 'futures'.bold.blue
+      futures(args)
     when 'Currencies'
-      puts 'currencies'.bold.blue
+      currencies(args)
     when 'Bonds'
-      puts 'bonds'.bold.blue
+      bonds(args)
     when 'Stocks'
       stocks(args)
     when 'Cryptocurrencies'
@@ -51,13 +57,25 @@ class UI
 
   def init(args)
     @doc = Nokogiri::HTML(URI.open(args[0]))
-    @name = @doc.css(args[1]).text.split
-    @address = @doc.css(args[1]).map { |link| link['href'] }
-    [@name, @address]
+    @_name = @doc.css(args[1]).text.split
+    @_address = @doc.css(args[1]).map { |link| link['href'] }
+    @_name
   end
 
-  def futures()
+  def indices(_args = nil)
+    puts 'Indices'.bold.blue
+  end
+
+  def futures(_args = nil)
     puts 'futures'.bold.blue
+  end
+
+  def currencies(_args = nil)
+    puts 'currencies'.bold.blue
+  end
+
+  def bonds(_args = nil)
+    puts 'bonds'.bold.blue
   end
 
   def stocks
@@ -76,6 +94,7 @@ class UI
   end
 
   def cryptocurrencies
+    @spinner.auto_spin
     @out = []
     @ref = 'https://www.tradingview.com/markets/cryptocurrencies/prices-all/'
     @doc = Nokogiri::HTML(URI.parse(@ref).open)
@@ -91,38 +110,46 @@ class UI
       @change = i.css('td.tv-screener-table__cell--big')[7].text
       @out << [@name, @cap, @price, @available, @total, @trade_volume, @change]
     end
+    @spinner.success
     options_controller([@header, @out])
   end
 
   def options_controller(tbl)
-    prompt = TTY::Prompt.new
     @options = ['List All', 'Search', 'Multi-Select']
-    @opt = prompt.select('What is it to be?', @options)
+    @opt = @prompt.select('What is it to be?', @options)
     options(@opt, tbl)
   end
 
   def options(str, tbl)
-    prompt = TTY::Prompt.new
     case str
     when 'List All'
-      table = TTY::Table.new(tbl[0], tbl[1])
-      puts table.render(:ascii).bold
+      render_table(tbl[0], tbl[1])
     when 'Search'
-      @names = []
-      @tbl_new = []
-      tbl[1].each_with_index { |val, i| @names << tbl[1][i][0] }
-      @choice = prompt.select('Choose your destiny?', @names, filter: true)
-      tbl[1].select { |val| @tbl_new << val if val[0] == @choice }
-      table = TTY::Table.new(tbl[0], @tbl_new)
-      puts table.render(:ascii).bold
+      @tbl_new = extract_table_index(str, tbl)
+      render_table(tbl[0], @tbl_new)
     when 'Multi-Select'
-      @names = []
-      @tbl_new = []
-      tbl[1].each_with_index { |val, i| @names << tbl[1][i][0] }
-      @choice = prompt.multi_select('Search and multi select form following list:', @names, filter: true)
-      @choice.each { |i| tbl[1].select { |val| @tbl_new << val if val[0] == i } }
-      table = TTY::Table.new(tbl[0], @tbl_new)
-      puts table.render(:ascii).bold
+      @tbl_new = extract_table_index(str, tbl)
+      render_table(tbl[0], @tbl_new)
     end
+  end
+
+  def extract_table_index(str, tbl)
+    @names = []
+    @tbl_new = []
+    tbl[1].each_with_index { |_val, i| @names << tbl[1][i][0] }
+    case str
+    when 'Multi-Select'
+      @choice = @prompt.multi_select('Search and multi select form following list:', @names, filter: true)
+      @choice.each { |i| tbl[1].select { |val| @tbl_new << val if val[0] == i } }
+    when 'Search'
+      @choice = @prompt.select('Choose your destiny?', @names, filter: true)
+      @tbl_new = tbl[1].select { |val| val if val[0] == @choice }
+    end
+    @tbl_new
+  end
+
+  def render_table(header, content)
+    @table = TTY::Table.new(header, content)
+    puts @table.render(:ascii).bold
   end
 end
