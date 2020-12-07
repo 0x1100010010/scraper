@@ -5,8 +5,8 @@ class UI
     puts font.write('Yo Scrapper!').red
 
     # uname = prompt.ask('What is your name?', default: ENV['USER'])
-    category = prompt.select('Select catogory#', controller('init'))
-    scrap(category, nil)
+    category = prompt.select('Select catogory#', controller('init'), filter: true)
+    scrap(category)
   end
 
   private
@@ -28,7 +28,7 @@ class UI
     @out
   end
 
-  def scrap(category, args)
+  def scrap(category, args=nil)
     case category
     when 'init'
       init(args)
@@ -53,7 +53,6 @@ class UI
     @doc = Nokogiri::HTML(URI.open(args[0]))
     @name = @doc.css(args[1]).text.split
     @address = @doc.css(args[1]).map { |link| link['href'] }
-    puts @name.index('Stocks')
     [@name, @address]
   end
 
@@ -97,8 +96,8 @@ class UI
 
   def options_controller(tbl)
     prompt = TTY::Prompt.new
-    @options = ['List All', 'Search', 'List Select']
-    @opt = prompt.select('Choose your destiny?', @options)
+    @options = ['List All', 'Search', 'Multi-Select']
+    @opt = prompt.select('What is it to be?', @options)
     options(@opt, tbl)
   end
 
@@ -111,12 +110,19 @@ class UI
     when 'Search'
       @names = []
       @tbl_new = []
-      tbl[1].each_with_index { |_val, i| @names << tbl[1][i][0] }
+      tbl[1].each_with_index { |val, i| @names << tbl[1][i][0] }
       @choice = prompt.select('Choose your destiny?', @names, filter: true)
       tbl[1].select { |val| @tbl_new << val if val[0] == @choice }
       table = TTY::Table.new(tbl[0], @tbl_new)
       puts table.render(:ascii).bold
-    when 'Select'
+    when 'Multi-Select'
+      @names = []
+      @tbl_new = []
+      tbl[1].each_with_index { |val, i| @names << tbl[1][i][0] }
+      @choice = prompt.multi_select('Search and multi select form following list:', @names, filter: true)
+      @choice.each { |i| tbl[1].select { |val| @tbl_new << val if val[0] == i } }
+      table = TTY::Table.new(tbl[0], @tbl_new)
+      puts table.render(:ascii).bold
     end
   end
 end
