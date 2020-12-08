@@ -12,4 +12,4 @@ require 'tty-table'
 require 'tty-spinner'
 
 init = UI.new
-init.ui
+init.start
