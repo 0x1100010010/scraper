@@ -1,12 +1,14 @@
+# rubocop:disable Metrics/CyclomaticComplexity
+# rubocop:disable Metrics/ClassLength
+# rubocop:disable Metrics/MethodLength
+
 class Controller
-  
-  def initialize(_name, _address, _root_addr, _spinner, _font, _prompt)
-    @_name = _name
-    @_address = _address
-    @_root_addr = _root_addr
-    @spinner = _spinner
-    @font = _font
-    @prompt = _prompt
+  def initialize(name, address, root_addr, spinner, prompt)
+    @_name = name
+    @_address = address
+    @_root_addr = root_addr
+    @spinner = spinner
+    @prompt = prompt
   end
 
   def controller(str)
@@ -40,6 +42,8 @@ class Controller
     @spinner.success
     @out
   end
+
+  private
 
   def init(args)
     @doc = Nokogiri::HTML(URI.parse(args[0]).open)
@@ -214,3 +218,6 @@ class Controller
     puts @table.render(:ascii).bold
   end
 end
+# rubocop:enable Metrics/CyclomaticComplexity
+# rubocop:enable Metrics/ClassLength
+# rubocop:enable Metrics/MethodLength

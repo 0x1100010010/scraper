@@ -1,7 +1,8 @@
 require_relative 'controller'
 
-# FLOW: UI -> controller -> scrap
 class UI
+  attr_reader :_name, :_address, :_root_addr, :font, :spinner, :prompt, :obj
+
   def initialize
     @_name = []
     @_address = []
@@ -9,7 +10,7 @@ class UI
     @spinner = TTY::Spinner.new
     @font = TTY::Font.new(:standard)
     @prompt = TTY::Prompt.new(help_color: :cyan)
-    @obj = Controller.new(@_name, @_address, @_root_addr, @spinner, @font, @prompt)
+    @obj = Controller.new(@_name, @_address, @_root_addr, @spinner, @prompt)
   end
 
   def start
