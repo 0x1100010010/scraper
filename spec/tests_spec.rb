@@ -5,13 +5,10 @@ require 'nokogiri'
 require 'tty-font'
 require 'tty-prompt'
 require 'tty-link'
-require 'pastel'
 require 'tty-table'
 require 'tty-spinner'
-require 'webmock/rspec'
 require 'colorize'
 require 'rspec'
-require 'rails_helper'
 require 'spec_helper'
 
 describe UI do
