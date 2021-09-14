@@ -16,7 +16,7 @@ This project is an Interactive Web Scrapper configured to scrap selective pages 
 
 ![screenshot](./assets/screenshot.png)
 
-Theis application is fully interactive. 
+This application is fully interactive. 
 You will rarely have to type any thing unless you want to interactively find or select something.  
 - At launch it display you the main catogorie you want to scrap.
 ![screenshot](./assets/step-1.png)
